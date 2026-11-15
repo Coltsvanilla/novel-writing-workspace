@@ -1,0 +1,10 @@
+# Claude Code のローカル設定
+.claude/settings.local.json
+
+# スキル評価用の作業ディレクトリ
+*-workspace/
+
+# OS・エディタ
+Thumbs.db
+desktop.ini
+.DS_Store
