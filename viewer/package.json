@@ -1,0 +1,1 @@
+{"name":"story-viewer","version":"0.1.0","private":true,"type":"module","scripts":{"start":"node server.js","test":"node --test test/"},"engines":{"node":">=20"},"dependencies":{"cytoscape":"^3.35.0","marked":"^12.0.2"}}

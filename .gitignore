@@ -8,3 +8,6 @@
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# 物語ビューアの依存
+viewer/node_modules/
