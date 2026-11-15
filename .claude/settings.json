@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "pstack@cursor-plugins": true
+  },
+  "model": "sonnet",
+  "effortLevel": "high"
+}
