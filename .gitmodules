@@ -1,3 +1,6 @@
 [submodule "stories/馬車から始まる希望"]
 	path = stories/馬車から始まる希望
 	url = https://github.com/Coltsvanilla/hope-from-the-carriage.git
+[submodule "stories/村はずれの剣"]
+	path = stories/村はずれの剣
+	url = https://github.com/Coltsvanilla/murahazure-no-ken.git
