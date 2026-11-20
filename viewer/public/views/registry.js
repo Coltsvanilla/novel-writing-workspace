@@ -6,7 +6,7 @@ import { items } from './items.js';
 import { reader } from './reader.js';
 import { review } from './review.js';
 
-const VIEWS = { overview, ideas: prose, outline: prose, plot: prose, characters, relations, items, draft: reader, manuscript: reader, review };
+const VIEWS = { overview, ideas: prose, outline: prose, partoutline: prose, partreview: prose, state: prose, plot: prose, characters, relations, items, draft: reader, manuscript: reader, review };
 
 /** plot-3 / draft-3 のような章つきの id は種類で引く */
 export const viewFor = (docId) => VIEWS[docId.replace(/-\d+$/, '')] ?? null;

@@ -597,3 +597,17 @@ button { font: inherit; color: inherit; }
   .rail, .readbar, .tabs, .toast, .skip { display: none; }
   .shell { display: block; }
 }
+
+/* 長編モード：部の見出し・工程、完成稿の入れ子の目次 */
+.part { margin-top: var(--s6, 32px); }
+.part:first-of-type { margin-top: 0; }
+.part__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s2) var(--s3); margin-bottom: var(--s2); }
+.part__title { font-family: var(--font-read); font-size: 18px; }
+.part__name { font-weight: 600; color: var(--ink-soft); }
+.part__sum { margin-bottom: var(--s2); font-size: 14px; line-height: 1.7; color: var(--ink-soft); }
+.pstep { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s4); margin: 0 0 var(--s3); padding: 0; list-style: none; }
+.pstep__item { display: inline-flex; align-items: center; gap: var(--s2); font-size: 13px; }
+.pstep__label { color: var(--ink-soft); }
+.toc__sub { margin: var(--s1) 0 var(--s2) var(--s4); }
+.m-chapter--sub { padding-bottom: 0.5em; }
+.m-chapter--sub h3 { margin: 1.6em 0 0.8em; font-family: var(--font-read); font-size: 1.1em; }

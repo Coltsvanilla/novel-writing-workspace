@@ -29,7 +29,7 @@ const card = (s) => html`
     </div>
     <p class="card__phase">${s.current ? html`現在：フェーズ${s.current.no} ${s.current.name}<span class="badge badge--${s.current.status.key}">${s.current.status.label}</span>` : html`<span class="badge badge--approved"><span aria-hidden="true" class="badge__glyph">✓</span>全フェーズ承認済み</span>`}</p>
     <ul class="card__meta">
-      <li>${s.chapters}章</li>
+      <li>${s.parts ? `${s.parts}部・` : ''}${s.chapters}章</li>
       <li>${s.totalChars ? `${fmt(s.totalChars)}字` : '本文はこれから'}</li>
       <li>${s.lastCommit ? `最終コミット ${s.lastCommit.date}` : 'コミットなし'}</li>
     </ul>

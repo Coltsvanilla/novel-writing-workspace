@@ -40,13 +40,22 @@ const draft = ({ story: s, doc, file, ui }) => {
 };
 
 const manuscript = ({ file, ui }) => {
-  const chapters = splitSections(file.text, 2).filter((x) => x.title);
+  const parts = splitSections(file.text, 2).filter((x) => x.title);
+  /** 長編の完成稿は「## 第N部」の中に「### 第M章」が入る。短編は「## 第N章」だけ */
+  const nested = parts.map((c) => ({ ...c, subs: splitSections(c.body, 3).filter((x) => x.title), lead: splitSections(c.body, 3)[0]?.body ?? '' }));
   const toc = html`
     <nav class="toc" aria-label="目次">
       <h2 class="block__title">目次</h2>
-      <ol>${chapters.map((c, i) => html`<li><button type="button" class="link" data-act="goto" data-target="m-${i}">${c.title}</button></li>`)}</ol>
+      <ol>${nested.map((c, i) => html`<li><button type="button" class="link" data-act="goto" data-target="m-${i}">${c.title}</button>
+        ${c.subs.length ? html`<ol class="toc__sub">${c.subs.map((x, j) => html`<li><button type="button" class="link" data-act="goto" data-target="m-${i}-${j}">${x.title}</button></li>`)}</ol>` : ''}</li>`)}</ol>
     </nav>`;
-  const text = chapters.map((c, i) => html`<section class="m-chapter" id="m-${i}"><h2>${c.title}</h2>${novel(c.body.replace(/\n-{3,}\s*$/, ''))}</section>`);
+  const clean = (body) => novel(body.replace(/\n-{3,}\s*$/, ''));
+  const text = nested.map((c, i) => html`
+    <section class="m-chapter" id="m-${i}"><h2>${c.title}</h2>
+      ${c.subs.length
+        ? html`${c.lead.trim() ? clean(c.lead) : ''}${c.subs.map((x, j) => html`<section class="m-chapter m-chapter--sub" id="m-${i}-${j}"><h3>${x.title}</h3>${clean(x.body)}</section>`)}`
+        : clean(c.body)}
+    </section>`);
   return html`${toc}${page(ui.reading, text)}`;
 };
 

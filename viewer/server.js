@@ -20,6 +20,7 @@ const STATIC = {
   '/vendor/cytoscape.js': join(ROOT, 'node_modules/cytoscape/dist/cytoscape.min.js'),
   '/shared/relations.js': join(ROOT, 'lib/relations.js'),
   '/shared/md.js': join(ROOT, 'lib/md.js'),
+  '/shared/chapters.js': join(ROOT, 'lib/chapters.js'),
   '/shared/layout.js': join(ROOT, 'lib/layout.js'),
 };
 
@@ -74,7 +75,7 @@ async function summary(name) {
   const m = await buildModel(name);
   return {
     name, pct: m.progress.pct, approved: m.progress.approved, total: m.progress.total, current: m.progress.current,
-    awaiting: m.awaiting, changed: m.git.dirty.length, chapters: m.chapters.length, totalChars: m.totalChars,
+    awaiting: m.awaiting, changed: m.git.dirty.length, chapters: m.chapters.length, parts: m.parts.length, totalChars: m.totalChars,
     first: m.input.first, last: m.input.last, lastCommit: m.git.history[0] ?? null,
   };
 }
