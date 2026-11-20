@@ -4,3 +4,6 @@
 [submodule "stories/村はずれの剣"]
 	path = stories/村はずれの剣
 	url = https://github.com/Coltsvanilla/murahazure-no-ken.git
+[submodule "stories/港町の夜風と済んだ話"]
+	path = stories/港町の夜風と済んだ話
+	url = https://github.com/Coltsvanilla/minatomachi-no-yokaze.git
