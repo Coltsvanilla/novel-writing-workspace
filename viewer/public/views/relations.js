@@ -1,11 +1,14 @@
 import { html, unwrap } from '../lib/html.js';
 import { edgeAt, nodeAt } from '/shared/relations.js';
+import { labelOf } from '/shared/chapters.js';
 import { radialLayout } from '/shared/layout.js';
 import { markdown } from '../lib/markdown.js';
 import { chapterCount, emptyState } from '../lib/ui.js';
 import { KIND, avatar } from './characters.js';
 
 let teardown = null;
+/** 章の表示名を引くための、いま開いている物語の章（render と mount で更新する） */
+let CHAPTERS = [];
 
 /** 図の上のラベルは短く切る。全文は右の詳細パネルで読める */
 const clip = (s, n = 12) => (s.length > n ? `${s.slice(0, n)}…` : s);
@@ -24,7 +27,7 @@ function snapshot(rel, ch) {
   return { nodes, edges };
 }
 
-const chLabel = (ch) => (ch === 0 ? '物語開始時点' : `第${ch}章の時点`);
+const chLabel = (ch) => (ch === 0 ? '物語開始時点' : `${labelOf(CHAPTERS, ch)}の時点`);
 
 function nodePanel(rel, node, ch) {
   const snap = snapshot(rel, ch);
@@ -38,7 +41,7 @@ function nodePanel(rel, node, ch) {
         <p><span class="pill pill--kind kind-${node.kind}">${KIND[node.kind]}</span></p>
       </div>
     </header>
-    <p class="muted">${node.chapterText ? `登場：${node.chapterText}` : `初登場：第${node.first}章`}${snap.nodes.get(node.id).visible && snap.nodes.get(node.id).dim ? '（この章の時点ではまだ登場していません）' : ''}</p>
+    <p class="muted">${node.chapterText ? `登場：${node.chapterText}` : `初登場：${labelOf(CHAPTERS, node.first)}`}${snap.nodes.get(node.id).visible && snap.nodes.get(node.id).dim ? '（この章の時点ではまだ登場していません）' : ''}</p>
     <h4 class="panel__sub">つながり（${chLabel(ch)}）</h4>
     ${links.length
       ? html`<ul class="links">${links.map((x) => {
@@ -55,7 +58,7 @@ function edgePanel(rel, edge, ch) {
   return html`
     <header class="panel__head">
       <h3 class="detail__name">${a} <span aria-hidden="true">↔</span><span class="sr">と</span> ${b}</h3>
-      <p class="edge-now"><span class="muted">${chLabel(ch)}</span> ${at.visible ? at.label || '関係の記載なし' : html`<span class="muted">まだ関係が始まっていません（第${edge.since}章から）</span>`}</p>
+      <p class="edge-now"><span class="muted">${chLabel(ch)}</span> ${at.visible ? at.label || '関係の記載なし' : html`<span class="muted">まだ関係が始まっていません（${labelOf(CHAPTERS, edge.since)}から）</span>`}</p>
     </header>
     <h4 class="panel__sub">はじまりの関係</h4>
     ${base
@@ -66,14 +69,14 @@ function edgePanel(rel, edge, ch) {
           <div><dt>${base.bName} → ${base.aName}</dt><dd>${base.bToA}</dd></div>
           ${base.note ? html`<div><dt>備考</dt><dd>${base.note}</dd></div>` : ''}
         </dl>`
-      : html`<p class="muted">開始時点の関係表には載っていません。第${edge.since}章から現れます。</p>`}
+      : html`<p class="muted">開始時点の関係表には載っていません。${labelOf(CHAPTERS, edge.since)}から現れます。</p>`}
     <h4 class="panel__sub">章ごとの変化</h4>
     ${edge.timeline.length
       ? html`<ol class="changes">${edge.timeline.map((t) => {
           const when = t.ch < ch ? 'past' : t.ch === ch ? 'now' : 'future';
           return html`
             <li class="changes__item changes__item--${when}">
-              <span class="changes__ch">第${t.ch}章<span class="changes__when">${{ past: '過去', now: 'この章', future: 'これから' }[when]}</span></span>
+              <span class="changes__ch">${labelOf(CHAPTERS, t.ch)}<span class="changes__when">${{ past: '過去', now: 'この章', future: 'これから' }[when]}</span></span>
               <p class="changes__text">${t.before} <span aria-hidden="true">→</span><span class="sr">から</span> <b>${t.after}</b></p>
               ${t.trigger ? html`<p class="changes__why">きっかけ：${t.trigger}</p>` : ''}
             </li>`;
@@ -104,8 +107,17 @@ function panel(rel, ch, sel) {
   return chapterPanel(rel, ch);
 }
 
+/** 目盛りの文字。長編で章が多いときは、選択中の章と各部の最初の章だけ名前を出す */
+const tickText = (s, i, ch) => {
+  if (i === 0) return '開始';
+  const c = s.chapters.find((x) => x.no === i);
+  if (!c || c.part === 0) return `第${i}章`;
+  if (s.chapters.length <= 12 || i === ch) return c.label;
+  return c.chNo === 1 ? `第${c.part}部` : '·';
+};
+
 function ticks(s, ch, max) {
-  return html`${Array.from({ length: max + 1 }, (_, i) => html`<button type="button" class="ticks__btn ${i === ch ? 'is-on' : ''}" style="left:calc(10px + (100% - 20px) * ${max ? i / max : 0})" data-ch="${i}" ${i === ch ? html`aria-current="true"` : ''}>${i === 0 ? '開始' : `第${i}章`}</button>`)}`;
+  return html`${Array.from({ length: max + 1 }, (_, i) => html`<button type="button" class="ticks__btn ${i === ch ? 'is-on' : ''}" style="left:calc(10px + (100% - 20px) * ${max ? i / max : 0})" data-ch="${i}" title="${i === 0 ? '物語開始時点' : labelOf(s.chapters, i)}" ${i === ch ? html`aria-current="true"` : ''}>${tickText(s, i, ch)}</button>`)}`;
 }
 
 const legend = html`
@@ -116,6 +128,7 @@ const legend = html`
 
 export const relations = {
   render({ story: s, file, q }) {
+    CHAPTERS = s.chapters;
     const rel = s.rel;
     const rawTable = file ? html`<details class="block fold"><summary><h2 class="block__title">元の表（原文）</h2></summary><div class="prose">${markdown(file.text, { dropTitle: true })}</div></details>` : '';
     if (!rel.hasData) {
@@ -148,6 +161,7 @@ export const relations = {
 
   mount(root, ctx) {
     const { story: s } = ctx;
+    CHAPTERS = s.chapters;
     const rel = s.rel;
     if (!rel.hasData || typeof cytoscape === 'undefined') return;
     const max = maxChapter(s);

@@ -1,6 +1,7 @@
 import { html } from '../lib/html.js';
 import { href } from '../lib/route.js';
 import { chapterCount, excerpt } from '../lib/ui.js';
+import { labelOf } from '/shared/chapters.js';
 
 export const KIND = { protagonist: '主人公', partner: '相棒', animal: '動物', support: '脇役', mention: '言及のみ' };
 
@@ -8,12 +9,12 @@ export const avatar = (c, size = '') => html`<span class="avatar avatar--${c.kin
 
 const quotes = (lines) => lines.split(/、(?=「)/).filter(Boolean);
 
-const dots = (c, n) => html`
+const dots = (c, n, chapters) => html`
   <span class="appear" role="img" aria-label="登場：${c.chapterText || 'なし'}">
     ${Array.from({ length: n }, (_, i) => {
       const ch = i + 1;
       const kind = c.chapters.main.includes(ch) ? 'main' : c.chapters.mention.includes(ch) ? 'mention' : 'none';
-      return html`<span class="appear__dot appear__dot--${kind}" title="第${ch}章 ${{ main: '登場', mention: '言及', none: '出ない' }[kind]}"></span>`;
+      return html`<span class="appear__dot appear__dot--${kind}" title="${labelOf(chapters, ch)} ${{ main: '登場', mention: '言及', none: '出ない' }[kind]}"></span>`;
     })}
   </span>`;
 
@@ -25,7 +26,7 @@ const card = (s, c, n, selected) => html`
         <span class="char__names"><span class="char__name">${c.display}</span><span class="char__full">${c.full === c.display ? KIND[c.kind] : `${c.full}`}</span></span>
       </span>
       <span class="char__role">${c.role || KIND[c.kind]}</span>
-      ${dots(c, n)}
+      ${dots(c, n, s.chapters)}
       ${c.personality ? html`<span class="char__text">${excerpt(c.personality, 54)}</span>` : ''}
     </a>
   </li>`;
@@ -92,7 +93,7 @@ export const characters = {
       <div class="split">
         <div class="split__main">
           <ul class="grid grid--chars">${people.map((c) => card(s, c, n, c.id === sel.id))}</ul>
-          <p class="legend"><span class="appear__dot appear__dot--main"></span>登場 <span class="appear__dot appear__dot--mention"></span>言及のみ <span class="appear__dot appear__dot--none"></span>出ない（左から第1章）</p>
+          <p class="legend"><span class="appear__dot appear__dot--main"></span>登場 <span class="appear__dot appear__dot--mention"></span>言及のみ <span class="appear__dot appear__dot--none"></span>出ない（左から${s.chapters[0]?.label ?? '第1章'}）</p>
         </div>
         ${detail(sel)}
       </div>

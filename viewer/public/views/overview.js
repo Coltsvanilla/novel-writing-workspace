@@ -3,7 +3,7 @@ import { href } from '../lib/route.js';
 import { col } from '/shared/md.js';
 import { statusBadge, changePill, fmt, splitLead, excerpt } from '../lib/ui.js';
 
-const phaseDoc = (s, no) => s.docs.find((d) => d.group === `フェーズ${no}` && d.path);
+const phaseDoc = (s, no) => s.docs.find((d) => new RegExp(`^フェーズ${no}(\\s|$)`).test(d.group) && d.path);
 const docByPath = (s, path) => s.docs.find((d) => d.path === path);
 
 const awaitingBand = (s) =>
@@ -66,24 +66,44 @@ const steps = (s) => html`
     </ol>
   </section>`;
 
+const chapterItem = (s, c) => {
+  const target = c.hasDraft ? `draft-${c.no}` : c.hasPlot ? `plot-${c.no}` : null;
+  const inner = html`
+    <span class="strip__no">第${c.chNo}章 ${c.role ? html`<span class="strip__role">${c.role}</span>` : ''}</span>
+    <span class="strip__title">${c.title}</span>
+    ${c.summary ? html`<span class="strip__sum">${excerpt(c.summary, 48)}</span>` : ''}
+    <span class="strip__foot">${statusBadge(c.status)}<span class="strip__chars">${c.hasDraft ? `${fmt(c.chars)}字` : '本文は未作成'}</span></span>`;
+  return html`<li class="strip__item">${target ? html`<a href="${href(s.name, target)}">${inner}</a>` : html`<div>${inner}</div>`}</li>`;
+};
+
+const partBlock = (s, p) => html`
+  <section class="part" aria-label="第${p.no}部">
+    <header class="part__head">
+      <h3 class="part__title">第${p.no}部${p.title ? html` <span class="part__name">「${p.title}」</span>` : ''}</h3>
+      ${statusBadge(p.status)}
+      <span class="muted">${p.chapters.length}章・${p.chars ? `${fmt(p.chars)}字` : '本文はこれから'}</span>
+    </header>
+    ${p.summary ? html`<p class="part__sum">${excerpt(p.summary, 90)}</p>` : ''}
+    ${p.steps.length
+      ? html`<ul class="pstep" aria-label="第${p.no}部の工程">${p.steps.map((x) => html`<li class="pstep__item"><span class="pstep__label">${x.label}</span>${statusBadge(x.status)}</li>`)}</ul>`
+      : ''}
+    <ol class="strip">${s.chapters.filter((c) => c.part === p.no).map((c) => chapterItem(s, c))}</ol>
+  </section>`;
+
 const chapterStrip = (s) =>
-  s.chapters.length
-    ? html`
-      <section class="block" aria-labelledby="chs">
-        <h2 class="block__title" id="chs">章ごとの状況</h2>
-        <ol class="strip">
-          ${s.chapters.map((c) => {
-            const target = c.hasDraft ? `draft-${c.no}` : c.hasPlot ? `plot-${c.no}` : null;
-            const inner = html`
-              <span class="strip__no">第${c.no}章 ${c.role ? html`<span class="strip__role">${c.role}</span>` : ''}</span>
-              <span class="strip__title">${c.title}</span>
-              ${c.summary ? html`<span class="strip__sum">${excerpt(c.summary, 48)}</span>` : ''}
-              <span class="strip__foot">${statusBadge(c.status)}<span class="strip__chars">${c.hasDraft ? `${fmt(c.chars)}字` : '本文は未作成'}</span></span>`;
-            return html`<li class="strip__item">${target ? html`<a href="${href(s.name, target)}">${inner}</a>` : html`<div>${inner}</div>`}</li>`;
-          })}
-        </ol>
-      </section>`
-    : '';
+  !s.chapters.length
+    ? ''
+    : s.mode === 'long'
+      ? html`
+        <section class="block" aria-labelledby="chs">
+          <h2 class="block__title" id="chs">部・章ごとの状況</h2>
+          ${s.parts.map((p) => partBlock(s, p))}
+        </section>`
+      : html`
+        <section class="block" aria-labelledby="chs">
+          <h2 class="block__title" id="chs">章ごとの状況</h2>
+          <ol class="strip">${s.chapters.map((c) => chapterItem(s, c))}</ol>
+        </section>`;
 
 const changeLog = (s) =>
   s.log.length
