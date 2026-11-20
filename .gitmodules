@@ -7,3 +7,6 @@
 [submodule "stories/港町の夜風と済んだ話"]
 	path = stories/港町の夜風と済んだ話
 	url = https://github.com/Coltsvanilla/minatomachi-no-yokaze.git
+[submodule "stories/分隊長の戦記"]
+	path = stories/分隊長の戦記
+	url = https://github.com/Coltsvanilla/buntaicho-no-senki.git
